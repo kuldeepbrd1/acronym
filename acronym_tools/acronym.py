@@ -25,7 +25,7 @@ import os
 import json
 import h5py
 import trimesh
-import trimesh.path
+import trimesh_polygons as trimesh_polygons
 import trimesh.transformations as tra
 import numpy as np
 
@@ -68,7 +68,7 @@ class Scene(object):
             erosion_distance (float, optional): Clearance from support surface edges. Defaults to 0.02.
 
         Returns:
-            list[trimesh.path.polygons.Polygon]: list of support polygons.
+            list[trimesh_polygons.Polygon]: list of support polygons.
             list[np.ndarray]: list of homogenous 4x4 matrices describing the polygon poses in scene coordinates.
         """
         assert np.isclose(np.linalg.norm(gravity), 1.0)
@@ -104,7 +104,7 @@ class Scene(object):
                 group = trimesh.grouping.group_rows(edges, require_count=1)
 
                 # run the polygon conversion
-                polygon = trimesh.path.polygons.edges_to_polygons(
+                polygon = trimesh_polygons.edges_to_polygons(
                     edges=edges[group], vertices=vertices
                 )
 
@@ -186,9 +186,7 @@ class Scene(object):
                         pts = [p.x, p.y]
                         break
             else:
-                pts = trimesh.path.polygons.sample(
-                    support_polys[support_index], count=1
-                )
+                pts = trimesh_polygons.sample(support_polys[support_index], count=1)
 
             # To avoid collisions with the support surface
             pts3d = np.append(pts, distance_above_support)
@@ -363,11 +361,11 @@ def load_mesh(filename, mesh_root_dir, scale=None):
     """
     if filename.endswith(".json"):
         data = json.load(open(filename, "r"))
-        mesh_fname = data["object"].decode('utf-8')
+        mesh_fname = data["object"].decode("utf-8")
         mesh_scale = data["object_scale"] if scale is None else scale
     elif filename.endswith(".h5"):
         data = h5py.File(filename, "r")
-        mesh_fname = data["object/file"][()].decode('utf-8')
+        mesh_fname = data["object/file"][()].decode("utf-8")
         mesh_scale = data["object/scale"][()] if scale is None else scale
     else:
         raise RuntimeError("Unknown file ending:", filename)
